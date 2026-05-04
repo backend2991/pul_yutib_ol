@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To'lov Tizimi - Hammasi birda</title>
+    <style>
+        /* CSS QISMI */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .main-card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 380px;
+        }
+
+        .balance-area {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #eee;
+        }
+
+        .balance-area span {
+            display: block;
+            font-size: 28px;
+            font-weight: bold;
+            color: #2d3436;
+        }
+
+        /* Modal (Oyna) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 25px;
+            border-radius: 15px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .rules-container {
+            text-align: left;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            padding: 15px;
+            height: 120px;
+            overflow-y: scroll;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #636e72;
+        }
+
+        .checkbox-group {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .checkbox-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #2d3436;
+        }
+
+        /* Tugmalar */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-withdraw { background: #00b894; color: white; }
+        .btn-withdraw:hover { background: #00a087; }
+
+        .btn-confirm { background: #0984e3; color: white; }
+        .btn-confirm:disabled { background: #b2bec3; cursor: not-allowed; }
+
+        .btn-cancel { background: transparent; color: #d63031; margin-top: 10px; }
+
+        #success-msg {
+            display: none;
+            margin-top: 20px;
+            color: #00b894;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <h2>Hamyon</h2>
+        <div class="balance-area">
+            <p>Mavjud mablag'</p>
+            <span>5,500,000 so'm</span>
+        </div>
+        <button class="btn btn-withdraw" onclick="toggleModal(true)">Pulni yechish</button>
+        <div id="success-msg">✅ Pul yechish so'rovi qabul qilindi!</div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <h3>Tasdiqlash</h3>
+            <div class="rules-container">
+                <b>Xizmat shartlari:</b><br>
+                1. Pul o'tkazmasi qaytarilmaydi.<br>
+                2. Karta ma'lumotlari to'g'riligiga foydalanuvchi javobgar.<br>
+                3. Tranzaksiya vaqti: 5-60 daqiqa.<br>
+                4. Shubhali operatsiyalar bloklanishi mumkin.
+            </div>
+
+            <div class="checkbox-group">
+                <label><input type="checkbox" class="step-check"> Shartlar bilan tanishdim</label>
+                <label><input type="checkbox" class="step-check"> Komissiyaga roziman (1%)</label>
+                <label><input type="checkbox" class="step-check"> Robot emasman</label>
+            </div>
+
+            <button id="finalBtn" class="btn btn-confirm" disabled onclick="processPayment()">Roziman va Pulni yechish</button>
+            <button class="btn btn-cancel" onclick="toggleModal(false)">Bekor qilish</button>
+        </div>
+    </div>
+
+    <script>
+        /* JAVASCRIPT QISMI */
+        const modal = document.getElementById('modal');
+        const finalBtn = document.getElementById('finalBtn');
+        const checkboxes = document.querySelectorAll('.step-check');
+        const successMsg = document.getElementById('success-msg');
+        const withdrawBtn = document.querySelector('.btn-withdraw');
+
+        // Modalni ochish/yopish funksiyasi
+        function toggleModal(show) {
+            modal.style.display = show ? 'flex' : 'none';
+            if (!show) resetForm();
+        }
+
+        // Har bir checkbox bosilganda tekshirish
+        checkboxes.forEach(box => {
+            box.addEventListener('change', () => {
+                // Hamma checkbox belgilanganmi?
+                const isAllChecked = Array.from(checkboxes).every(c => c.checked);
+                finalBtn.disabled = !isAllChecked;
+            });
+        });
+
+        // Yakuniy pul yechish funksiyasi
+        function processPayment() {
+            modal.style.display = 'none';
+            withdrawBtn.style.display = 'none';
+            successMsg.style.display = 'block';
+            
+            // Konsolga ma'lumot chiqarish
+            console.log("Muvaffaqiyatli: Pul yechish bajarildi.");
+        }
+
+        // Formani tozalash
+        function resetForm() {
+            checkboxes.forEach(c => c.checked = false);
+            finalBtn.disabled = true;
+        }
+    </script>
+
+</body>
+</html>
